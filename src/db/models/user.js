@@ -61,6 +61,10 @@ userSchema.methods.generateAuthToken = async function() {
     return token;
 };
 
+userSchema.methods.getPublicProfile = function() {
+    return {id: this.id, name: this.name, email: this.email, age: this.age};
+};
+
 userSchema.statics.findByCredentials = async function(email, password) {
     const user = await User.findOne({email});
     if (!user) throw new Error("Unable to login");

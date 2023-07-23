@@ -2,10 +2,9 @@ import express from 'express';
 
 import { userRouter } from './routers/user.js';
 import { taskRouter } from './routers/task.js';
-import { MAINTENANCE_MODE } from './settings.js';
+import { MAINTENANCE_MODE, PORT } from './settings.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // global express moddleware
 app.use((_req, res, next) => {

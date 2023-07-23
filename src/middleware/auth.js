@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
-import { User } from '../models/user.js';
-import { JWT_SECRET_KEY } from '../../settings.js';
+import { User } from '../db/models/user.js';
+import { JWT_SECRET_KEY } from '../settings.js';
 
 
 export async function auth(req, res, next) {
@@ -12,8 +12,8 @@ export async function auth(req, res, next) {
 
         if (!user) throw new Error();
 
-        req.user = user
-
+        req.token = token;
+        req.user = user;
         next();
 
     } catch (e) {
