@@ -49,6 +49,14 @@ const userSchema = connection.Schema({
             required: true
         }
     }]
+},{
+    toJSON: {virtuals: true}
+});
+
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'owner'
 });
 
 userSchema.methods.generateAuthToken = async function() {
