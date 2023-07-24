@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { connection } from '../mongoose.js';
 import {JWT_SECRET_KEY} from '../../settings.js';
+import { Task } from './task.js';
 
 const userSchema = connection.Schema({
     name: {
@@ -91,5 +92,14 @@ userSchema.pre('save', async function(next) {
     }
     next()
 });
+
+// Cascading deleting tasks
+userSchema.pre('deleteOne', { document: true, query: false }, async function(next){
+    const user = this;
+    await Task.deleteMany({owner: user._id});
+    next();
+})
+
+
 
 export const User = connection.model('User', userSchema);
