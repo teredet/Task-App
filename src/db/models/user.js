@@ -51,7 +51,8 @@ const userSchema = connection.Schema({
         }
     }]
 },{
-    toJSON: {virtuals: true}
+    toJSON: {virtuals: true},
+    timestamps: true
 });
 
 userSchema.virtual('tasks', {

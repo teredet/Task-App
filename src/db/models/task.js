@@ -19,7 +19,8 @@ const taskSchema = connection.Schema({
         ref: 'User'
     }
 },{
-    toJSON: {virtuals: true}
+    toJSON: {virtuals: true},
+    timestamps: true
 });
 
 export const Task = connection.model('Task', taskSchema);
