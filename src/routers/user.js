@@ -1,10 +1,11 @@
-import express from 'express';
+import { Router } from 'express';
+import multer from 'multer';
 
 import { User } from '../db/models/user.js';
 import { auth } from '../middleware/auth.js';
 
 
-const router = new express.Router();
+const router = new Router();
 
 router.post("/users", async (req, res) => {
     try {
@@ -92,5 +93,24 @@ router.delete('/users/me', auth, async (req, res) => {
         res.status(500).send({ "Error": e.message });
     }
 });
+
+const upload = multer({
+    dest: 'avatars',
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        if(!file.originalname.match(/^.*\.(png|jpg|jpeg)$/)){
+            return cb(new Error('File must be a .png, .jpg or .jpeg'));
+        }
+        cb(undefined, true);
+    }
+});
+
+router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
+    res.send();
+}, (error, req, res, next) => {
+    res.status(400).send({error: error.message})
+})
 
 export { router as userRouter };
