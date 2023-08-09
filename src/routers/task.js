@@ -23,15 +23,26 @@ router.post("/tasks", auth, async (req, res) => {
 
 router.get('/tasks', auth, async (req, res) => {
     try {
-        const allTasks = await Task.find({ 
-            owner: req.user._id 
-        });
+        const match = {};
+        const sort = {};
 
-        // or 
-        const userTasks = (await req.user.populate('tasks')).tasks;
-        console.log(userTasks);
+        if (req.query.completed) match.completed = req.query.completed == 'true';
+        if (req.query.sortBy) {
+            const [field, order] = req.query.sortBy.split(':');
+            sort[field] = order == 'asc' ? 1 : -1 
+        }
 
-        res.send(allTasks);
+        const userTasks = (await req.user.populate({
+            path: 'tasks',
+            match,
+            options: {
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip),
+                sort
+            }
+        })).tasks;
+
+        res.send(userTasks);
     } catch (e) {
         console.log("Error: " + e.message);
         res.status(500).send({ "Error": e.message });
