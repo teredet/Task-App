@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import sharp from 'sharp';
 
 import { User } from '../db/models/user.js';
 import { auth } from '../middleware/auth.js';
@@ -95,22 +96,56 @@ router.delete('/users/me', auth, async (req, res) => {
 });
 
 const upload = multer({
-    dest: 'avatars',
     limits: {
         fileSize: 1000000
     },
     fileFilter(req, file, cb) {
-        if(!file.originalname.match(/^.*\.(png|jpg|jpeg)$/)){
+        if (!file.originalname.match(/^.*\.(png|jpg|jpeg)$/)) {
             return cb(new Error('File must be a .png, .jpg or .jpeg'));
         }
         cb(undefined, true);
     }
 });
 
-router.post('/users/me/avatar', upload.single('avatar'), (req, res) => {
-    res.send();
+router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    try {
+        const buffer = await sharp(req.file.buffer)
+                                .resize({ width: 250, height: 250 })
+                                .png()
+                                .toBuffer();
+
+        req.user.avatar = buffer;
+        await req.user.save();
+        res.send();
+    } catch (e) {
+        console.log("Error: " + e.message);
+        res.status(500).send({ "Error": e.message });
+    }
 }, (error, req, res, next) => {
-    res.status(400).send({error: error.message})
+    res.status(400).send({ error: error.message })
+})
+
+router.get('/users/:id/avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user || !user.avatar) throw new Error();
+
+        res.set('Content-Type', 'image/png');
+        res.send(user.avatar);
+    } catch (e) {
+        res.status(404).send();
+    }
+})
+
+router.delete('/users/me/avatar', auth, async (req, res) => {
+    try {
+        req.user.avatar = undefined;
+        await req.user.save();
+        res.send();
+    } catch (e) {
+        console.log("Error: " + e.message);
+        res.status(500).send({ "Error": e.message });
+    }
 })
 
 export { router as userRouter };

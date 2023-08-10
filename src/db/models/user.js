@@ -49,7 +49,10 @@ const userSchema = connection.Schema({
             type: String, 
             required: true
         }
-    }]
+    }],
+    avatar:{
+        type: Buffer
+    }
 },{
     toJSON: {virtuals: true},
     timestamps: true
