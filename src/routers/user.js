@@ -4,6 +4,7 @@ import sharp from 'sharp';
 
 import { User } from '../db/models/user.js';
 import { auth } from '../middleware/auth.js';
+import { sendWelcomeEmail, sendCancelationEmail } from '../emails.js';
 
 
 const router = new Router();
@@ -13,6 +14,7 @@ router.post("/users", async (req, res) => {
         const user = new User(req.body);
         const token = await user.generateAuthToken();
         const saveRes = await user.save();
+        sendWelcomeEmail(user.email, user.name);
         res.status(201).send({ user: saveRes.getPublicProfile(), token });
     } catch (e) {
         console.log("Error: " + e.message);
@@ -88,6 +90,7 @@ router.patch('/users/me', auth, async (req, res) => {
 router.delete('/users/me', auth, async (req, res) => {
     try {
         const deletedUser = await req.user.deleteOne();
+        sendCancelationEmail(deletedUser.email, deletedUser.name);
         res.send(deletedUser.getPublicProfile());
     } catch (e) {
         console.log("Error: " + e.message);
@@ -128,7 +131,7 @@ router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) 
 router.get('/users/:id/avatar', async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-        if (!user || !user.avatar) throw new Error();
+        if (!user?.avatar) throw new Error();
 
         res.set('Content-Type', 'image/png');
         res.send(user.avatar);
