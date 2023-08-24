@@ -1,34 +1,11 @@
 import request from 'supertest';
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
 
-import { userRouter } from '../src/routers/user.js';
-import { taskRouter } from '../src/routers/task.js';
+import app from './app.js';
 import { User } from '../src/db/models/user.js';
+import { userOneId, userOne, setupDb } from './db.js';
 
 
-const app = express();
-app.use(express.json());
-app.use(userRouter);
-app.use(taskRouter);
-
-const userOneId = new mongoose.Types.ObjectId();
-const userOne = {
-    _id: userOneId,
-    name: 'Mike',
-    email: 'mike@example.com',
-    password: 'examplepass',
-    tokens: [{
-        token: jwt.sign({ _id: userOneId }, process.env.JWT_SECRET_KEY)
-    }]
-}
-
-beforeEach(async () => {
-    await User.deleteMany();
-    await new User(userOne).save();
-})
-
+beforeEach(setupDb) 
 
 test('Should signup a new user', async () => {
     const response = await request(app).post('/users')
@@ -107,7 +84,6 @@ test('Should delete account for user', async () => {
         .expect(200)
     
     // Assert that the database was changed correctly
-    console.log(response.body)
     const user = await User.findById(response.body.id);
     expect(user).toBeNull();
 })
